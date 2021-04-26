@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-18.04 (Bionic)
 
     strategy:
       matrix:
@@ -37,7 +37,6 @@ jobs:
         # Kurento Media Server - Release packages
         deb [arch=amd64] http://ubuntu.openvidu.io/6.16.0 $DISTRIB_CODENAME kms6
         EOF
-    - run: sudo rm /etc/apt/sources.list.d/kurento.list
     - run: sudo apt-get update && sudo apt-get install --no-install-recommends --yes kurento-media-server
     - run: sudo service kurento-media-server start
     - run: sudo gem install dpl
