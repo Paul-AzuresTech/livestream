@@ -1,0 +1,44 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Edify Livestream
+
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: run clean install
+      run: |
+        npm ci
+    - name: run build
+      run: |
+        npm run build --if-present
+    - run: sudo apt-get update -qy
+    - run: sudo apt-get install --no-install-recommends --yes gnupg
+    - run: sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5AFA7A83
+    - run: source /etc/lsb-release
+    - run: sudo tee "/etc/apt/sources.list.d/kurento.list" >/dev/null <<EOF
+        # Kurento Media Server - Release packages
+        deb [arch=amd64] http://ubuntu.openvidu.io/6.16.0 $DISTRIB_CODENAME kms6
+        EOF
+    - run: sudo apt-get update && sudo apt-get install --no-install-recommends --yes kurento-media-server
+    - run: sudo service kurento-media-server start
+    - run: sudo gem install dpl
+    - name: deploy to heroku
+      run: |
+        sudo dpl --provider=heroku --app=${{ secrets.HEROKU_APP_NAME }} --api-key=${{ secrets.HEROKU_API_KEY }}
